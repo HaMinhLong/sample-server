@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define("users", {
+  const Menu = sequelize.define("menus", {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -7,35 +7,31 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       field: "id",
     },
-    username: {
+    menuName: {
       type: DataTypes.TEXT,
       allowNull: false,
-      field: "username",
+      field: "menuName",
     },
-    password: {
-      type: DataTypes.TEXT,
+    orderBy: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      field: "password",
+      field: "orderBy",
     },
-    fullName: {
-      type: DataTypes.TEXT,
+    url: {
+      type: DataTypes.STRING,
       allowNull: false,
-      field: "fullName",
+      field: "url",
     },
-    email: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      field: "email",
-    },
-    mobile: {
-      type: DataTypes.BIGINT,
+    icon: {
+      type: DataTypes.STRING,
       allowNull: true,
-      field: "mobile",
+      field: "icon",
     },
-    userGroupId: {
+    parentId: {
       type: DataTypes.BIGINT,
-      allowNull: false,
-      field: "userGroupId",
+      hierarchy: true,
+      allowNull: true,
+      field: "parentId",
     },
     status: {
       type: DataTypes.INTEGER,
@@ -44,5 +40,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   });
 
-  return User;
+  return Menu;
 };

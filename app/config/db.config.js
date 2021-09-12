@@ -1,13 +1,13 @@
 module.exports = {
   HOST: "localhost",
-  USER: "root",
-  PASSWORD: "123456",
-  DB: "testdb",
+  USER: "halong",
+  PASSWORD: "Na+89-K-2",
+  DB: "authdb",
   dialect: "mysql",
   pool: {
     max: 5,
     min: 0,
     acquire: 30000,
-    idle: 10000
-  }
+    idle: 10000,
+  },
 };

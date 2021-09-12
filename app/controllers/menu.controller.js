@@ -1,37 +1,38 @@
 const db = require("../models");
-const User = db.user;
+const Menu = db.menu;
+const UserGroup = db.userGroup;
+const UserGroupRole = db.userGroupRole;
 const moment = require("moment");
 
 const Op = db.Sequelize.Op;
 
-const getList = async (req, res) => {
+const getListParentChild = async (req, res) => {
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
   const ranges = range ? JSON.parse(range) : [0, 19];
-  const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
+  const order = sort ? JSON.parse(sort) : ["orderBy", "ASC"];
   const attributesQuery = attributes
     ? JSON.parse(attributes)
     : [
         "id",
-        "username",
-        "password",
-        "fullName",
-        "email",
-        "userGroupId",
-        "mobile",
+        "menuName",
+        "orderBy",
+        "icon",
+        "url",
+        "parentId",
         "status",
         "createdAt",
         "updatedAt",
       ];
   const status = filters.status || "";
-  const username = filters.username || "";
+  const menuName = filters.menuName || "";
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
   var options = {
     where: {
       [Op.and]: [
         { status: { [Op.like]: "%" + status + "%" } },
-        { username: { [Op.like]: "%" + username + "%" } },
+        { menuName: { [Op.like]: "%" + menuName + "%" } },
       ],
       createdAt: {
         [Op.between]: [fromDate, toDate],
@@ -41,11 +42,12 @@ const getList = async (req, res) => {
     attributes: attributesQuery,
     offset: ranges[0],
     limit: ranges[1],
+    hierarchy: true,
   };
-
   const size = ranges[1] + 1 - ranges[0];
   const current = Math.floor((ranges[1] + 1) / size);
-  User.findAndCountAll(options)
+
+  Menu.findAndCountAll(options)
     .then((result) => {
       res.status(200).json({
         results: {
@@ -62,7 +64,7 @@ const getList = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy danh sách!",
@@ -72,15 +74,15 @@ const getList = async (req, res) => {
 
 const getOne = async (req, res) => {
   const { id } = req.params;
-  User.findOne({
+  Menu.findOne({
     where: {
       id: id,
     },
   })
-    .then((user) => {
+    .then((menu) => {
       res.status(200).json({
         results: {
-          list: user,
+          list: menu,
           pagination: [],
         },
         success: true,
@@ -92,69 +94,83 @@ const getOne = async (req, res) => {
       res.status(400).json({
         success: false,
         error: err.message,
-        message: "Xảy ra lỗi khi lấy thông tin tài khoản!",
+        message: "Xảy ra lỗi khi lấy thông tin thanh công cụ!",
       });
     });
 };
 
 const create = async (req, res) => {
-  const { username, password, fullName, email, mobile, userGroupId, status } =
-    req.body;
-  const user = await User.findOne({
-    where: { username: username },
+  const { menuName, orderBy, url, icon, parentId, status } = req.body;
+  const userGroup = await UserGroup.findAll();
+  const menu = await Menu.findOne({
+    where: { menuName: menuName },
   });
-  if (user) {
+  if (menu) {
     res.status(400).json({
       success: false,
-      error: "Tài khoản đã tồn tại!",
-      message: "Tài khoản đã tồn tại!",
+      error: "Thanh công cụ đã tồn tại!",
+      message: "Thanh công cụ đã tồn tại!",
     });
   } else {
-    User.create({
+    Menu.create({
       id:
         Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
         100000000000,
-      username,
-      password,
+      menuName,
+      orderBy,
+      url,
+      icon,
+      parentId: parentId || null,
       status,
-      fullName,
-      email,
-      mobile,
-      userGroupId,
     })
-      .then((user) => {
+      .then(async (menu) => {
         res.status(200).json({
           results: {
-            list: user,
+            list: menu,
             pagination: [],
           },
           success: true,
           error: "",
-          message: "Tạo mới tài khoản thành công!",
+          message: "Tạo mới thanh công cụ thành công!",
         });
+        for (let index = 0; index < userGroup.length; index++) {
+          UserGroupRole.create({
+            id:
+              Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
+              100000000000,
+            menuName: menuName,
+            menuId: menu.id,
+            userGroupId: userGroup[index].id,
+            isView: false,
+            isAdd: false,
+            isUpdate: false,
+            isDelete: false,
+            isBlock: false,
+            isApprove: false,
+            menuParentId: parentId || null,
+          });
+        }
       })
       .catch((err) => {
         res.status(400).json({
           success: false,
           error: err.message,
-          message: "Xảy ra lỗi khi tạo mới tài khoản!",
+          message: "Xảy ra lỗi khi tạo mới thanh công cụ!",
         });
       });
   }
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { username, password, fullName, email, mobile, userGroupId, status } =
-    req.body;
-  User.update(
+  const { menuName, orderBy, url, icon, parentId, status } = req.body;
+  Menu.update(
     {
+      menuName: menuName,
+      orderBy: orderBy,
+      url: url,
+      icon: icon,
+      parentId: parentId,
       status: status,
-      username: username,
-      password: password,
-      fullName: fullName,
-      email: email,
-      mobile: mobile,
-      userGroupId: userGroupId,
     },
     {
       where: {
@@ -162,40 +178,40 @@ const updateRecord = async (req, res) => {
       },
     }
   )
-    .then((user) => {
+    .then((menu) => {
       res.status(200).json({
         results: {
-          list: user,
+          list: menu,
           pagination: [],
         },
         success: true,
         error: "",
-        message: "Cập nhật tài khoản thành công!",
+        message: "Cập nhật thanh công cụ thành công!",
       });
     })
     .catch((err) => {
       res.status(400).json({
         success: false,
         error: err.message,
-        message: "Xảy ra lỗi khi cập nhật tài khoản!",
+        message: "Xảy ra lỗi khi cập nhật thanh công cụ!",
       });
     });
 };
-const updateStatus = async (req, res) => {
+const updateStatusList = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  User.update(
+  Menu.update(
     { status: status },
     {
       where: {
-        id: id,
+        [Op.or]: [{ id: id }, { parentId: id }],
       },
     }
   )
-    .then((user) => {
+    .then((menu) => {
       res.status(200).json({
         results: {
-          list: user,
+          list: menu,
           pagination: [],
         },
         success: true,
@@ -214,36 +230,35 @@ const updateStatus = async (req, res) => {
 
 const deleteRecord = async (req, res) => {
   const { id } = req.params;
-  User.destroy({
+  Menu.destroy({
     where: {
       id: id,
     },
   })
-    .then((user) => {
+    .then((menu) => {
       res.status(200).json({
         results: {
-          list: user,
+          list: menu,
           pagination: [],
         },
         success: true,
         error: "",
-        message: "Xóa tài khoản thành công!",
+        message: "Xóa thanh công cụ thành công!",
       });
     })
     .catch((err) => {
       res.status(400).json({
         success: false,
         error: err.message,
-        message: "Xảy ra lỗi khi xóa tài khoản!",
+        message: "Xảy ra lỗi khi xóa thanh công cụ!",
       });
     });
 };
-
 module.exports = {
-  getList,
+  getListParentChild,
   getOne,
   create,
   updateRecord,
-  updateStatus,
+  updateStatusList,
   deleteRecord,
 };
