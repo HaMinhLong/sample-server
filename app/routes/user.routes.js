@@ -19,4 +19,5 @@ module.exports = function (app) {
     controller.changePasswordLogin
   );
   app.post("/user/changePasswordNotLogin", controller.changePasswordNotLogin);
+  app.post("/user/forgotPassword", controller.forgetPassword);
 };

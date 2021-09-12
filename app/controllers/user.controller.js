@@ -2,6 +2,8 @@ const db = require("../models");
 const User = db.user;
 const moment = require("moment");
 var bcrypt = require("bcryptjs");
+var nodemailer = require("nodemailer");
+var smtpTransport = require("nodemailer-smtp-transport");
 
 const Op = db.Sequelize.Op;
 
@@ -136,13 +138,11 @@ const create = async (req, res) => {
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { username, password, fullName, email, mobile, userGroupId, status } =
-    req.body;
+  const { username, fullName, email, mobile, userGroupId, status } = req.body;
   User.update(
     {
       status: status,
       username: username,
-      password: bcrypt.hashSync(password, 8),
       fullName: fullName,
       email: email,
       mobile: mobile,
@@ -326,6 +326,63 @@ const changePasswordNotLogin = async (req, res) => {
       });
   }
 };
+const forgetPassword = async (req, res) => {
+  const { emailTo, subject } = req.body;
+  const user = await User.findOne({
+    where: {
+      email: emailTo,
+    },
+  });
+  if (!user) {
+    res.status(400).json({
+      status: false,
+      error: "Vui lòng nhập đúng email tài khoản của bạn!",
+      message: "Vui lòng nhập đúng email tài khoản của bạn!",
+    });
+  } else {
+    var transporter = nodemailer.createTransport(
+      smtpTransport({
+        service: "gmail",
+        auth: {
+          user: "haminhlong3@gmail.com",
+          pass: "Na+89-K-2",
+        },
+      })
+    );
+    const passwordReset = Math.random().toString(36).substr(2, 8);
+    var mailOptions = {
+      from: "haminhlong3@gmail.com",
+      to: emailTo,
+      subject: subject,
+      text: `Mật khẩu của bạn đã được thay đổi thành ${passwordReset}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        res.status(400).json({
+          success: false,
+          error: error,
+          message: "Đã xảy ra lỗi khi gửi email tới bạn!",
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          error: info.response,
+          message: "Mật khẩu mới đã được gửi tới email của bạn!",
+        });
+        User.update(
+          { password: bcrypt.hashSync(passwordReset, 8) },
+          {
+            where: {
+              email: emailTo,
+            },
+          }
+        );
+      }
+    });
+  }
+};
 
 module.exports = {
   getList,
@@ -337,4 +394,5 @@ module.exports = {
   currentUser,
   changePasswordLogin,
   changePasswordNotLogin,
+  forgetPassword,
 };
