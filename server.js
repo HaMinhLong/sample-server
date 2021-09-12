@@ -10,6 +10,30 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use(function (req, res, next) {
+  // Website you wish to allow to connect
+  // res.setHeader("Access-Control-Allow-Origin", "exp://127.0.0.1:19000");
+
+  // Request methods you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+
+  // Request headers you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "x-access-token, Origin, Content-Type, Accept"
+  );
+
+  // Set to true if you need the website to include cookies in the requests sent
+  // to the API (e.g. in case you use sessions)
+  res.setHeader("Access-Control-Allow-Credentials", true);
+
+  // Pass to next layer of middleware
+  next();
+});
+
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
 

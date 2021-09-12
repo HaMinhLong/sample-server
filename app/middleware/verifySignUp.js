@@ -10,8 +10,10 @@ checkDuplicateUsernameOrEmail = (req, res, next) => {
     },
   }).then((user) => {
     if (user) {
-      res.status(400).send({
-        message: "Failed! Username is already in use!",
+      res.status(400).json({
+        success: false,
+        error: "Tên tài khoản đã được sử dụng!",
+        message: "Tên tài khoản đã được sử dụng!",
       });
       return;
     }
@@ -23,8 +25,10 @@ checkDuplicateUsernameOrEmail = (req, res, next) => {
       },
     }).then((user) => {
       if (user) {
-        res.status(400).send({
-          message: "Failed! Email is already in use!",
+        res.status(400).json({
+          success: false,
+          error: "Email đã được sử dụng!",
+          message: "Email đã được sử dụng!",
         });
         return;
       }

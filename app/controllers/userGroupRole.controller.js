@@ -8,6 +8,7 @@ const moment = require("moment");
 const Op = db.Sequelize.Op;
 
 const getListRole = async (req, res) => {
+  const { userGroupId } = req;
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
   const ranges = range ? JSON.parse(range) : [0, 99];
@@ -29,7 +30,6 @@ const getListRole = async (req, res) => {
         "createdAt",
         "updatedAt",
       ];
-  const userGroupId = filters.userGroupId || "";
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
   var options = {
@@ -73,11 +73,8 @@ const getListRole = async (req, res) => {
 };
 
 const getListAuthRoutes = (req, res) => {
-  const { filter, sort } = req.query;
-  const filters = filter ? JSON.parse(filter) : {};
-  const order = sort ? JSON.parse(sort) : ["orderBy", "DESC"];
+  const { userGroupId } = req;
   const ranges = [0, 99];
-  const userGroupId = filters.userGroupId || "";
   const size = ranges[1] + 1 - ranges[0];
   const current = Math.floor((ranges[1] + 1) / size);
   const options = {
@@ -100,7 +97,7 @@ const getListAuthRoutes = (req, res) => {
         },
       },
     ],
-    order: [order],
+    order: [["orderBy", "ASC"]],
     limit: ranges[1],
     offset: ranges[0],
     hierarchy: true,
@@ -157,10 +154,10 @@ const getOne = async (req, res) => {
     });
 };
 const bulkUpdate = async (req, res) => {
-  const { id } = req.params;
+  const { userGroupId } = req;
   UserGroupRole.destroy({
     where: {
-      userGroupId: id,
+      userGroupId: userGroupId,
     },
   });
   // {

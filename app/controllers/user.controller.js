@@ -1,6 +1,7 @@
 const db = require("../models");
 const User = db.user;
 const moment = require("moment");
+var bcrypt = require("bcryptjs");
 
 const Op = db.Sequelize.Op;
 
@@ -23,8 +24,9 @@ const getList = async (req, res) => {
         "createdAt",
         "updatedAt",
       ];
-  const status = filters.status || "";
+  const status = filters.status || 1;
   const username = filters.username || "";
+  const userGroupId = filters.userGroupId || "";
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
   var options = {
@@ -32,6 +34,7 @@ const getList = async (req, res) => {
       [Op.and]: [
         { status: { [Op.like]: "%" + status + "%" } },
         { username: { [Op.like]: "%" + username + "%" } },
+        { userGroupId: { [Op.like]: "%" + userGroupId + "%" } },
       ],
       createdAt: {
         [Op.between]: [fromDate, toDate],
@@ -100,47 +103,36 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   const { username, password, fullName, email, mobile, userGroupId, status } =
     req.body;
-  const user = await User.findOne({
-    where: { username: username },
-  });
-  if (user) {
-    res.status(400).json({
-      success: false,
-      error: "Tài khoản đã tồn tại!",
-      message: "Tài khoản đã tồn tại!",
-    });
-  } else {
-    User.create({
-      id:
-        Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
-        100000000000,
-      username,
-      password,
-      status,
-      fullName,
-      email,
-      mobile,
-      userGroupId,
-    })
-      .then((user) => {
-        res.status(200).json({
-          results: {
-            list: user,
-            pagination: [],
-          },
-          success: true,
-          error: "",
-          message: "Tạo mới tài khoản thành công!",
-        });
-      })
-      .catch((err) => {
-        res.status(400).json({
-          success: false,
-          error: err.message,
-          message: "Xảy ra lỗi khi tạo mới tài khoản!",
-        });
+  User.create({
+    id:
+      Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
+      100000000000,
+    username,
+    password: bcrypt.hashSync(password, 8),
+    status,
+    fullName,
+    email,
+    mobile,
+    userGroupId,
+  })
+    .then((user) => {
+      res.status(200).json({
+        results: {
+          list: user,
+          pagination: [],
+        },
+        success: true,
+        error: "",
+        message: "Tạo mới tài khoản thành công!",
       });
-  }
+    })
+    .catch((err) => {
+      res.status(400).json({
+        success: false,
+        error: err.message,
+        message: "Xảy ra lỗi khi tạo mới tài khoản!",
+      });
+    });
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
@@ -150,7 +142,7 @@ const updateRecord = async (req, res) => {
     {
       status: status,
       username: username,
-      password: password,
+      password: bcrypt.hashSync(password, 8),
       fullName: fullName,
       email: email,
       mobile: mobile,
@@ -238,6 +230,102 @@ const deleteRecord = async (req, res) => {
       });
     });
 };
+const currentUser = (req, res) => {
+  const { userId } = req;
+  User.findByPk(userId).then((user) => {
+    res.status(200).json({
+      results: {
+        list: user,
+        pagination: [],
+      },
+      status: true,
+      error: "",
+      message: "",
+    });
+  });
+};
+const changePasswordLogin = (req, res) => {
+  const { userId } = req;
+  const { newPassword } = req.body;
+  User.update(
+    { password: bcrypt.hashSync(newPassword, 8) },
+    {
+      where: {
+        id: userId,
+      },
+    }
+  )
+    .then((user) => {
+      res.status(200).json({
+        results: {
+          list: user,
+          pagination: [],
+        },
+        status: true,
+        error: "",
+        message: "Đổi mật khẩu thành công!",
+      });
+    })
+    .catch((err) => {
+      res.status(400).json({
+        status: false,
+        error: err.message,
+        message: "Xảy ra lỗi khi đổi mật khẩu!",
+      });
+    });
+};
+const changePasswordNotLogin = async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+  const user = await User.findOne({
+    where: {
+      username: username,
+    },
+  });
+  if (!user) {
+    res.status(400).json({
+      status: false,
+      error: "Tài khoản không tồn tại!",
+      message: "Tài khoản không tồn tại!",
+    });
+  }
+
+  var passwordIsValid = bcrypt.compareSync(oldPassword, user.password);
+  if (!passwordIsValid) {
+    res.status(401).json({
+      success: false,
+      error: "Vui lòng nhập đúng mật khẩu!",
+      message: "Vui lòng nhập đúng mật khẩu!",
+    });
+  }
+  if (user && passwordIsValid) {
+    User.update(
+      { password: bcrypt.hashSync(newPassword, 8) },
+      {
+        where: {
+          username: username,
+        },
+      }
+    )
+      .then((user) => {
+        res.status(200).json({
+          results: {
+            list: user,
+            pagination: [],
+          },
+          status: true,
+          error: "",
+          message: "Đổi mật khẩu thành công!",
+        });
+      })
+      .catch((err) => {
+        res.status(400).json({
+          status: false,
+          error: err.message,
+          message: "Xảy ra lỗi khi đổi mật khẩu!",
+        });
+      });
+  }
+};
 
 module.exports = {
   getList,
@@ -246,4 +334,7 @@ module.exports = {
   updateRecord,
   updateStatus,
   deleteRecord,
+  currentUser,
+  changePasswordLogin,
+  changePasswordNotLogin,
 };
