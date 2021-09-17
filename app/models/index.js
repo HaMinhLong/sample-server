@@ -22,6 +22,7 @@ db.sequelize = sequelize;
 db.userGroup = require("../models/userGroup.model.js")(sequelize, Sequelize);
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.menu = require("../models/menu.model.js")(sequelize, Sequelize);
+db.config = require("../models/config.model.js")(sequelize, Sequelize);
 db.userGroupRole = require("../models/userGroupRole.model.js")(
   sequelize,
   Sequelize

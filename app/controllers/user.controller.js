@@ -1,5 +1,6 @@
 const db = require("../models");
 const User = db.user;
+const Config = db.config;
 const moment = require("moment");
 var bcrypt = require("bcryptjs");
 var nodemailer = require("nodemailer");
@@ -333,6 +334,9 @@ const forgetPassword = async (req, res) => {
       email: emailTo,
     },
   });
+  const config = await Config.findAll({});
+  const mailFrom = config[0].email;
+  const password = config[0].password;
   if (!user) {
     res.status(400).json({
       status: false,
@@ -344,14 +348,14 @@ const forgetPassword = async (req, res) => {
       smtpTransport({
         service: "gmail",
         auth: {
-          user: "haminhlong3@gmail.com",
-          pass: "Na+89-K-2",
+          user: mailFrom,
+          pass: password,
         },
       })
     );
     const passwordReset = Math.random().toString(36).substr(2, 8);
     var mailOptions = {
-      from: "haminhlong3@gmail.com",
+      from: mailFrom,
       to: emailTo,
       subject: subject,
       text: `Mật khẩu của bạn đã được thay đổi thành ${passwordReset}`,

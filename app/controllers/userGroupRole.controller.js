@@ -8,7 +8,7 @@ const moment = require("moment");
 const Op = db.Sequelize.Op;
 
 const getListRole = async (req, res) => {
-  const { userGroupId } = req;
+  const { userGroupId } = req.params;
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
   const ranges = range ? JSON.parse(range) : [0, 99];
@@ -154,7 +154,8 @@ const getOne = async (req, res) => {
     });
 };
 const bulkUpdate = async (req, res) => {
-  const { userGroupId } = req;
+  const { userGroupId } = req.params;
+
   UserGroupRole.destroy({
     where: {
       userGroupId: userGroupId,

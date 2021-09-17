@@ -5,10 +5,10 @@ const cors = require("cors");
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:8081",
+  origin: "http://localhost:8080",
 };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -61,6 +61,7 @@ require("./app/routes/user.routes")(app);
 require("./app/routes/userGroup.routes")(app);
 require("./app/routes/menu.routes")(app);
 require("./app/routes/userGroupRole.routes")(app);
+require("./app/routes/config.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
