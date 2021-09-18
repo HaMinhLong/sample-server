@@ -11,8 +11,9 @@ const getListParentChild = async (req, res) => {
   const filters = filter ? JSON.parse(filter) : {};
   const ranges = range ? JSON.parse(range) : [0, 19];
   const order = sort ? JSON.parse(sort) : ["orderBy", "ASC"];
-  const attributesQuery = attributes
-    ? JSON.parse(attributes)
+  let attributesString = attributes.slice(1, attributes.length - 1);
+  const attributesQuery = attributesString
+    ? attributesString.split(",")
     : [
         "id",
         "menuName",
@@ -57,7 +58,7 @@ const getListParentChild = async (req, res) => {
           list: result.rows,
           pagination: {
             total: result.count,
-            size: size,
+            pageSize: size,
             current: current,
           },
         },
