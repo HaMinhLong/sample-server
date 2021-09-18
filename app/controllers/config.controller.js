@@ -9,9 +9,8 @@ const getList = async (req, res) => {
   const filters = filter ? JSON.parse(filter) : {};
   const ranges = range ? JSON.parse(range) : [0, 19];
   const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
-  let attributesString = attributes.slice(1, attributes.length - 1);
-  const attributesQuery = attributesString
-    ? attributesString.split(",")
+  const attributesQuery = attributes
+    ? attributes.split(",")
     : ["id", "email", "createdAt", "updatedAt"];
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
