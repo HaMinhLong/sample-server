@@ -1,5 +1,6 @@
 const db = require("../models");
 const User = db.user;
+const UserGroup = db.userGroup;
 const Config = db.config;
 const moment = require("moment");
 var bcrypt = require("bcryptjs");
@@ -11,7 +12,7 @@ const Op = db.Sequelize.Op;
 const getList = async (req, res) => {
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
-  const ranges = range ? JSON.parse(range) : [0, 19];
+  const ranges = range ? JSON.parse(range) : [0, 20];
   const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
   const attributesQuery = attributes
     ? attributes.split(",")
@@ -27,17 +28,26 @@ const getList = async (req, res) => {
         "createdAt",
         "updatedAt",
       ];
-  const status = filters.status || 1;
+  const status = filters.status || "";
   const username = filters.username || "";
   const userGroupId = filters.userGroupId || "";
+  const fullName = filters.fullName || "";
+  const email = filters.email || "";
+  const mobile = filters.mobile || "";
+
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
+  const size = ranges[1] - ranges[0];
+  const current = Math.floor(ranges[1] / size);
   var options = {
     where: {
       [Op.and]: [
-        { status: { [Op.like]: "%" + status + "%" } },
         { username: { [Op.like]: "%" + username + "%" } },
         { userGroupId: { [Op.like]: "%" + userGroupId + "%" } },
+        { fullName: { [Op.like]: "%" + fullName + "%" } },
+        { email: { [Op.like]: "%" + email + "%" } },
+        { mobile: { [Op.like]: "%" + mobile + "%" } },
+        { status: { [Op.like]: "%" + status + "%" } },
       ],
       createdAt: {
         [Op.between]: [fromDate, toDate],
@@ -46,11 +56,16 @@ const getList = async (req, res) => {
     order: [order],
     attributes: attributesQuery,
     offset: ranges[0],
-    limit: ranges[1],
+    limit: size,
+    include: [
+      {
+        model: UserGroup,
+        required: true,
+        attributes: ["id", "userGroupName"],
+      },
+    ],
   };
 
-  const size = ranges[1] + 1 - ranges[0];
-  const current = Math.floor((ranges[1] + 1) / size);
   User.findAndCountAll(options)
     .then((result) => {
       res.status(200).json({
@@ -82,6 +97,13 @@ const getOne = async (req, res) => {
     where: {
       id: id,
     },
+    include: [
+      {
+        model: UserGroup,
+        required: true,
+        attributes: ["id", "userGroupName"],
+      },
+    ],
   })
     .then((user) => {
       res.status(200).json({
@@ -95,7 +117,7 @@ const getOne = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy thông tin tài khoản!",
@@ -106,6 +128,7 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   const { username, password, fullName, email, mobile, userGroupId, status } =
     req.body;
+
   User.create({
     id:
       Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
@@ -130,7 +153,7 @@ const create = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi tạo mới tài khoản!",
@@ -139,40 +162,59 @@ const create = async (req, res) => {
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { username, fullName, email, mobile, userGroupId, status } = req.body;
-  User.update(
-    {
-      status: status,
-      username: username,
-      fullName: fullName,
-      email: email,
-      mobile: mobile,
-      userGroupId: userGroupId,
-    },
-    {
-      where: {
-        id: id,
-      },
-    }
-  )
-    .then((user) => {
-      res.status(200).json({
-        results: {
-          list: user,
-          pagination: [],
-        },
-        success: true,
-        error: "",
-        message: "Cập nhật tài khoản thành công!",
-      });
-    })
-    .catch((err) => {
-      res.status(400).json({
-        success: false,
-        error: err.message,
-        message: "Xảy ra lỗi khi cập nhật tài khoản!",
-      });
+  const {
+    username,
+    usernameOld,
+    fullName,
+    email,
+    mobile,
+    userGroupId,
+    status,
+  } = req.body;
+  const user = await User.findOne({
+    where: { username: username },
+  });
+  if (user && username !== usernameOld) {
+    res.status(200).json({
+      success: false,
+      error: "Tài khoản đã tồn tại!",
+      message: "Tài khoản đã tồn tại!",
     });
+  } else {
+    User.update(
+      {
+        status: status,
+        username: username,
+        fullName: fullName,
+        email: email,
+        mobile: mobile,
+        userGroupId: userGroupId,
+      },
+      {
+        where: {
+          id: id,
+        },
+      }
+    )
+      .then((user) => {
+        res.status(200).json({
+          results: {
+            list: user,
+            pagination: [],
+          },
+          success: true,
+          error: "",
+          message: "Cập nhật tài khoản thành công!",
+        });
+      })
+      .catch((err) => {
+        res.status(200).json({
+          success: false,
+          error: err.message,
+          message: "Xảy ra lỗi khi cập nhật tài khoản!",
+        });
+      });
+  }
 };
 const updateStatus = async (req, res) => {
   const { id } = req.params;
@@ -197,7 +239,7 @@ const updateStatus = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi cập nhật trạng thái!",
@@ -224,7 +266,7 @@ const deleteRecord = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi xóa tài khoản!",
@@ -249,7 +291,7 @@ const changePasswordLogin = (req, res) => {
   const { userId } = req;
   const { newPassword } = req.body;
   User.update(
-    { password: bcrypt.hashSync(newPassword, 8) },
+    { password: bcrypt.hashSync(newPassword, 8), status: 1 },
     {
       where: {
         id: userId,
@@ -268,7 +310,7 @@ const changePasswordLogin = (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         status: false,
         error: err.message,
         message: "Xảy ra lỗi khi đổi mật khẩu!",
@@ -283,7 +325,7 @@ const changePasswordNotLogin = async (req, res) => {
     },
   });
   if (!user) {
-    res.status(400).json({
+    res.status(200).json({
       status: false,
       error: "Tài khoản không tồn tại!",
       message: "Tài khoản không tồn tại!",
@@ -300,7 +342,7 @@ const changePasswordNotLogin = async (req, res) => {
   }
   if (user && passwordIsValid) {
     User.update(
-      { password: bcrypt.hashSync(newPassword, 8) },
+      { password: bcrypt.hashSync(newPassword, 8), status: 1 },
       {
         where: {
           username: username,
@@ -319,7 +361,7 @@ const changePasswordNotLogin = async (req, res) => {
         });
       })
       .catch((err) => {
-        res.status(400).json({
+        res.status(200).json({
           status: false,
           error: err.message,
           message: "Xảy ra lỗi khi đổi mật khẩu!",
@@ -338,7 +380,7 @@ const forgetPassword = async (req, res) => {
   const mailFrom = config[0].email;
   const password = config[0].password;
   if (!user) {
-    res.status(400).json({
+    res.status(200).json({
       status: false,
       error: "Vui lòng nhập đúng email tài khoản của bạn!",
       message: "Vui lòng nhập đúng email tài khoản của bạn!",
@@ -364,7 +406,7 @@ const forgetPassword = async (req, res) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log(error);
-        res.status(400).json({
+        res.status(200).json({
           success: false,
           error: error,
           message: "Đã xảy ra lỗi khi gửi email tới bạn!",

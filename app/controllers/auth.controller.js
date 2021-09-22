@@ -30,7 +30,7 @@ const signUp = (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(500).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi đăng ký tài khoản!",
@@ -47,16 +47,33 @@ const signIn = (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({
+        return res.status(200).json({
           success: false,
           error: "Tài khoản không tồn tại!",
           message: "Tài khoản không tồn tại!",
         });
       }
+      console.log("user", user);
+      if (user.status === -2) {
+        return res.status(200).json({
+          success: false,
+          error:
+            "Tài khoản của ban chưa được kích hoạt. Vui lòng đổi mật khẩu đề kích hoạt tài khoản!",
+          message:
+            "Tài khoản của ban chưa được kích hoạt. Vui lòng đổi mật khẩu đề kích hoạt tài khoản!",
+        });
+      }
+      if (user.status === 0 || user.status === -1) {
+        return res.status(200).json({
+          success: false,
+          error: "Tài khoản của ban không được phép đăng nhập!",
+          message: "Tài khoản của ban không được phép đăng nhập!",
+        });
+      }
       var passwordIsValid = bcrypt.compareSync(password, user.password);
 
       if (!passwordIsValid) {
-        return res.status(401).json({
+        return res.status(200).json({
           success: false,
           accessToken: null,
           error: "Vui lòng nhập đúng mật khẩu!",
@@ -88,7 +105,7 @@ const signIn = (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(500).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi đăng nhập!",

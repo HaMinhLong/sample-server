@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       field: "email",
     },
     mobile: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.TEXT,
       allowNull: true,
       field: "mobile",
     },

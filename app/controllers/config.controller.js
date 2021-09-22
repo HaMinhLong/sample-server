@@ -7,13 +7,15 @@ const Op = db.Sequelize.Op;
 const getList = async (req, res) => {
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
-  const ranges = range ? JSON.parse(range) : [0, 19];
+  const ranges = range ? JSON.parse(range) : [0, 20];
   const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
   const attributesQuery = attributes
     ? attributes.split(",")
     : ["id", "email", "createdAt", "updatedAt"];
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
+  const size = ranges[1] - ranges[0];
+  const current = Math.floor(ranges[1] / size);
   var options = {
     where: {
       createdAt: {
@@ -23,11 +25,9 @@ const getList = async (req, res) => {
     order: [order],
     attributes: attributesQuery,
     offset: ranges[0],
-    limit: ranges[1],
+    limit: size,
   };
 
-  const size = ranges[1] + 1 - ranges[0];
-  const current = Math.floor((ranges[1] + 1) / size);
   Config.findAndCountAll(options)
     .then((result) => {
       res.status(200).json({
@@ -45,7 +45,7 @@ const getList = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy danh sách!",
@@ -60,7 +60,7 @@ const create = async (req, res) => {
   });
 
   if (config) {
-    res.status(400).json({
+    res.status(200).json({
       success: false,
       error: "Cấu hình đã tồn tại!",
       message: "Cấu hình đã tồn tại!",
@@ -85,7 +85,7 @@ const create = async (req, res) => {
         });
       })
       .catch((err) => {
-        res.status(400).json({
+        res.status(200).json({
           success: false,
           error: err.message,
           message: "Xảy ra lỗi khi tạo mới cấu hình!",
@@ -95,36 +95,48 @@ const create = async (req, res) => {
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { email, password } = req.body;
-  Config.update(
-    {
-      email: email,
-      password: password,
-    },
-    {
-      where: {
-        id: id,
-      },
-    }
-  )
-    .then((config) => {
-      res.status(200).json({
-        results: {
-          list: config,
-          pagination: [],
-        },
-        success: true,
-        error: "",
-        message: "Cập nhật cấu hình thành công!",
-      });
-    })
-    .catch((err) => {
-      res.status(400).json({
-        success: false,
-        error: err.message,
-        message: "Xảy ra lỗi khi cập nhật cấu hình!",
-      });
+  const { email, emailOld, password } = req.body;
+  const config = await Config.findOne({
+    where: { email: email },
+  });
+
+  if (config && emailOld !== email) {
+    res.status(200).json({
+      success: false,
+      error: "Cấu hình đã tồn tại!",
+      message: "Cấu hình đã tồn tại!",
     });
+  } else {
+    Config.update(
+      {
+        email: email,
+        password: password,
+      },
+      {
+        where: {
+          id: id,
+        },
+      }
+    )
+      .then((config) => {
+        res.status(200).json({
+          results: {
+            list: config,
+            pagination: [],
+          },
+          success: true,
+          error: "",
+          message: "Cập nhật cấu hình thành công!",
+        });
+      })
+      .catch((err) => {
+        res.status(200).json({
+          success: false,
+          error: err.message,
+          message: "Xảy ra lỗi khi cập nhật cấu hình!",
+        });
+      });
+  }
 };
 
 const deleteRecord = async (req, res) => {
@@ -146,7 +158,7 @@ const deleteRecord = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: err.message,
         message: "Xảy ra lôi khi xóa cấu hình!",

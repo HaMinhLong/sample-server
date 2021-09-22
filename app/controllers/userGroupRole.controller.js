@@ -11,7 +11,7 @@ const getListRole = async (req, res) => {
   const { userGroupId } = req.params;
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
-  const ranges = range ? JSON.parse(range) : [0, 99];
+  const ranges = range ? JSON.parse(range) : [0, 100];
   const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
   const attributesQuery = attributes
     ? attributes.split(",")
@@ -32,6 +32,8 @@ const getListRole = async (req, res) => {
       ];
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
+  const size = ranges[1] - ranges[0];
+  const current = Math.floor(ranges[1] / size);
   var options = {
     where: {
       [Op.and]: [{ userGroupId: { [Op.like]: "%" + userGroupId + "%" } }],
@@ -42,10 +44,8 @@ const getListRole = async (req, res) => {
     order: [order],
     attributes: attributesQuery,
     offset: ranges[0],
-    limit: ranges[1],
+    limit: size,
   };
-  const size = ranges[1] + 1 - ranges[0];
-  const current = Math.floor((ranges[1] + 1) / size);
 
   UserGroupRole.findAndCountAll(options)
     .then((result) => {
@@ -64,7 +64,7 @@ const getListRole = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy danh sách!",
@@ -74,9 +74,9 @@ const getListRole = async (req, res) => {
 
 const getListAuthRoutes = (req, res) => {
   const { userGroupId } = req;
-  const ranges = [0, 99];
-  const size = ranges[1] + 1 - ranges[0];
-  const current = Math.floor((ranges[1] + 1) / size);
+  const ranges = [0, 100];
+  const size = ranges[1] - ranges[0];
+  const current = Math.floor(ranges[1] / size);
   const options = {
     include: [
       {
@@ -98,8 +98,8 @@ const getListAuthRoutes = (req, res) => {
       },
     ],
     order: [["orderBy", "ASC"]],
-    limit: ranges[1],
     offset: ranges[0],
+    limit: size,
     hierarchy: true,
   };
   Menu.findAndCountAll(options)
@@ -119,7 +119,7 @@ const getListAuthRoutes = (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy danh sách!",
@@ -146,7 +146,7 @@ const getOne = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: true,
         error: err.message,
         message: "Xảy ra lỗi khi lấy thông tin quyền!",
@@ -177,7 +177,7 @@ const bulkUpdate = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi cấp quyền!",

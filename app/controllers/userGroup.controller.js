@@ -10,7 +10,7 @@ const Op = db.Sequelize.Op;
 const getList = async (req, res) => {
   const { filter, range, sort, attributes } = req.query;
   const filters = filter ? JSON.parse(filter) : {};
-  const ranges = range ? JSON.parse(range) : [0, 19];
+  const ranges = range ? JSON.parse(range) : [0, 20];
   const order = sort ? JSON.parse(sort) : ["createdAt", "DESC"];
   const attributesQuery = attributes
     ? attributes.split(",")
@@ -22,10 +22,13 @@ const getList = async (req, res) => {
         "createdAt",
         "updatedAt",
       ];
-  const status = filters.status || 1;
+  const status = filters.status || "";
   const userGroupName = filters.userGroupName || "";
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
+  const size = ranges[1] - ranges[0];
+  const current = Math.floor(ranges[1] / size);
+
   var options = {
     where: {
       [Op.and]: [
@@ -39,11 +42,9 @@ const getList = async (req, res) => {
     order: [order],
     attributes: attributesQuery,
     offset: ranges[0],
-    limit: ranges[1],
+    limit: size,
   };
 
-  const size = ranges[1] + 1 - ranges[0];
-  const current = Math.floor((ranges[1] + 1) / size);
   UserGroup.findAndCountAll(options)
     .then((result) => {
       res.status(200).json({
@@ -61,7 +62,7 @@ const getList = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi lấy danh sách!",
@@ -88,7 +89,7 @@ const getOne = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: true,
         error: err.message,
         message: "Xảy ra lỗi khi lấy thông tin nhóm người dùng!",
@@ -104,7 +105,7 @@ const create = async (req, res) => {
   const menu = await Menu.findAll();
 
   if (userGroup) {
-    res.status(400).json({
+    res.status(200).json({
       success: false,
       error: "Nhóm người dùng đã tồn tại!",
       message: "Nhóm người dùng đã tồn tại!",
@@ -149,7 +150,7 @@ const create = async (req, res) => {
         });
       })
       .catch((err) => {
-        res.status(400).json({
+        res.status(200).json({
           success: false,
           error: err.message,
           message: "Xảy ra lỗi khi tạo mới nhóm người dùng!",
@@ -159,37 +160,49 @@ const create = async (req, res) => {
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { userGroupName, userGroupDescriptions, status } = req.body;
-  UserGroup.update(
-    {
-      status: status,
-      userGroupName: userGroupName,
-      userGroupDescriptions: userGroupDescriptions,
-    },
-    {
-      where: {
-        id: id,
-      },
-    }
-  )
-    .then((userGroup) => {
-      res.status(200).json({
-        results: {
-          list: userGroup,
-          pagination: [],
-        },
-        success: true,
-        error: "",
-        message: "Cập nhật nhóm người dùng thành công!",
-      });
-    })
-    .catch((err) => {
-      res.status(400).json({
-        success: false,
-        error: err.message,
-        message: "Xảy ra lỗi khi cập nhật nhóm người dùng!",
-      });
+  const { userGroupName, userGroupNameOld, userGroupDescriptions, status } =
+    req.body;
+  const userGroup = await UserGroup.findOne({
+    where: { userGroupName: userGroupName },
+  });
+  if (userGroup && userGroupNameOld !== userGroupName) {
+    res.status(200).json({
+      success: false,
+      error: "Nhóm người dùng đã tồn tại!",
+      message: "Nhóm người dùng đã tồn tại!",
     });
+  } else {
+    UserGroup.update(
+      {
+        status: status,
+        userGroupName: userGroupName,
+        userGroupDescriptions: userGroupDescriptions,
+      },
+      {
+        where: {
+          id: id,
+        },
+      }
+    )
+      .then((userGroup) => {
+        res.status(200).json({
+          results: {
+            list: userGroup,
+            pagination: [],
+          },
+          success: true,
+          error: "",
+          message: "Cập nhật nhóm người dùng thành công!",
+        });
+      })
+      .catch((err) => {
+        res.status(200).json({
+          success: false,
+          error: err.message,
+          message: "Xảy ra lỗi khi cập nhật nhóm người dùng!",
+        });
+      });
+  }
 };
 const updateStatus = async (req, res) => {
   const { id } = req.params;
@@ -222,7 +235,7 @@ const updateStatus = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         error: err.message,
         message: "Xảy ra lỗi khi cập nhật trạng thái",
@@ -249,7 +262,7 @@ const deleteRecord = async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: err.message,
         message: "Xảy ra lôi khi xóa nhóm người dùng!",
