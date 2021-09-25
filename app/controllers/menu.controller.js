@@ -239,6 +239,27 @@ const create = async (req, res) => {
       });
   }
 };
+const bulkCreate = async (req, res) => {
+  Menu.bulkCreate(req.body)
+    .then((menu) => {
+      res.status(200).json({
+        results: {
+          list: menu,
+          pagination: [],
+        },
+        success: true,
+        error: "",
+        message: "Tạo mới thanh công cụ thành công!",
+      });
+    })
+    .catch((err) => {
+      res.status(200).json({
+        success: false,
+        error: err.message,
+        message: "Xảy ra lỗi khi tạo mới thanh công cụ!",
+      });
+    });
+};
 const updateRecord = async (req, res) => {
   const { id } = req.params;
   const { menuName, menuNameOld, orderBy, url, icon, parentId, status } =
@@ -408,6 +429,7 @@ module.exports = {
   getListParentChildOne,
   getOne,
   create,
+  bulkCreate,
   updateRecord,
   updateOrders,
   updateStatusList,

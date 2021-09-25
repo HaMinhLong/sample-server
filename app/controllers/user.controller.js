@@ -399,14 +399,14 @@ const changePasswordNotLogin = async (req, res) => {
             list: user,
             pagination: [],
           },
-          status: true,
+          success: true,
           error: "",
           message: "Đổi mật khẩu thành công!",
         });
       })
       .catch((err) => {
         res.status(200).json({
-          status: false,
+          success: false,
           error: err.message,
           message: "Xảy ra lỗi khi đổi mật khẩu!",
         });
