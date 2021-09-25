@@ -34,4 +34,5 @@ db.user.belongsTo(db.userGroup);
 //
 db.userGroup.belongsToMany(db.menu, { through: "userGroupRoles" });
 db.menu.belongsToMany(db.userGroup, { through: "userGroupRoles" });
+
 module.exports = db;

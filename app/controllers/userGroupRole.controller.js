@@ -30,13 +30,19 @@ const getListRole = async (req, res) => {
         "createdAt",
         "updatedAt",
       ];
+
+  const menuName = filters.menuName || "";
+
   const fromDate = filters.fromDate || "2021-01-01T14:06:48.000Z";
   const toDate = filters.toDate || moment();
   const size = ranges[1] - ranges[0];
   const current = Math.floor(ranges[1] / size);
   var options = {
     where: {
-      [Op.and]: [{ userGroupId: { [Op.like]: "%" + userGroupId + "%" } }],
+      [Op.and]: [
+        { userGroupId: { [Op.like]: "%" + userGroupId + "%" } },
+        { menuName: { [Op.like]: "%" + menuName + "%" } },
+      ],
       createdAt: {
         [Op.between]: [fromDate, toDate],
       },
@@ -85,7 +91,7 @@ const getListAuthRoutes = (req, res) => {
         where: {
           [Op.and]: [
             { id: { [Op.like]: "%" + userGroupId + "%" } },
-            { status: 1 },
+            { status: { [Op.like]: "%" + "1" + "%" } },
           ],
         },
         attributes: ["userGroupName"],
@@ -129,9 +135,13 @@ const getListAuthRoutes = (req, res) => {
 
 const getOne = async (req, res) => {
   const { id } = req.params;
+  const { filter } = req.query;
+  const filters = filter ? JSON.parse(filter) : {};
+  const userGroupId = filters.userGroupId || "";
+
   UserGroupRole.findOne({
     where: {
-      menuId: id,
+      [Op.and]: [{ menuId: id }, { userGroupId: userGroupId }],
     },
   })
     .then((userGroup) => {

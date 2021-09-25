@@ -126,13 +126,25 @@ const getOne = async (req, res) => {
 };
 
 const create = async (req, res) => {
-  const { username, password, fullName, email, mobile, userGroupId, status } =
-    req.body;
+  const {
+    id,
+    username,
+    password,
+    fullName,
+    email,
+    mobile,
+    userGroupId,
+    status,
+  } = req.body;
+  const config = await Config.findAll({});
+  const mailFrom = config[0].email;
+  const passwordEmail = config[0].password;
 
   User.create({
     id:
+      id ||
       Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
-      100000000000,
+        100000000000,
     username,
     password: bcrypt.hashSync(password, 8),
     status,
@@ -142,14 +154,40 @@ const create = async (req, res) => {
     userGroupId,
   })
     .then((user) => {
-      res.status(200).json({
-        results: {
-          list: user,
-          pagination: [],
-        },
-        success: true,
-        error: "",
-        message: "Tạo mới tài khoản thành công!",
+      var transporter = nodemailer.createTransport(
+        smtpTransport({
+          service: "gmail",
+          auth: {
+            user: mailFrom,
+            pass: passwordEmail,
+          },
+        })
+      );
+      var mailOptions = {
+        from: mailFrom,
+        to: email,
+        subject: "Thông tin đăng nhập",
+        text: `Tên đăng nhập: ${username}, Mật khẩu: ${password}`,
+      };
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+          res.status(200).json({
+            success: false,
+            error: error,
+            message: "Đã xảy ra lỗi khi gửi email!",
+          });
+        } else {
+          res.status(200).json({
+            results: {
+              list: user,
+              pagination: [],
+            },
+            success: true,
+            error: info.response,
+            message: "Tạo mới tài khoản thành công!",
+          });
+        }
       });
     })
     .catch((err) => {
@@ -395,7 +433,7 @@ const forgetPassword = async (req, res) => {
         },
       })
     );
-    const passwordReset = Math.random().toString(36).substr(2, 8);
+    const passwordReset = Math.random().toString(36).substr(2, 10);
     var mailOptions = {
       from: mailFrom,
       to: emailTo,

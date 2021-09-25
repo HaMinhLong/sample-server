@@ -8,4 +8,5 @@ module.exports = function (app) {
     controller.signUp
   );
   app.post("/auth/signIn", controller.signIn);
+  app.post("/auth/verifyToken", controller.verifyToken);
 };

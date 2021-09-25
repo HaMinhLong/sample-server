@@ -178,7 +178,7 @@ const getOne = async (req, res) => {
 };
 
 const create = async (req, res) => {
-  const { menuName, orderBy, url, icon, parentId, status } = req.body;
+  const { id, menuName, orderBy, url, icon, parentId, status } = req.body;
   const userGroup = await UserGroup.findAll();
   const menu = await Menu.findOne({
     where: { menuName: menuName },
@@ -192,8 +192,9 @@ const create = async (req, res) => {
   } else {
     Menu.create({
       id:
+        id ||
         Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
-        100000000000,
+          100000000000,
       menuName,
       orderBy,
       url,

@@ -98,7 +98,7 @@ const getOne = async (req, res) => {
 };
 
 const create = async (req, res) => {
-  const { userGroupName, userGroupDescriptions, status } = req.body;
+  const { id, userGroupName, userGroupDescriptions, status } = req.body;
   const userGroup = await UserGroup.findOne({
     where: { userGroupName: userGroupName },
   });
@@ -113,8 +113,9 @@ const create = async (req, res) => {
   } else {
     UserGroup.create({
       id:
+        id ||
         Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
-        100000000000,
+          100000000000,
       userGroupName,
       userGroupDescriptions,
       status,
