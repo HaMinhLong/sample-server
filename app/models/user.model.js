@@ -1,6 +1,4 @@
 module.exports = (sequelize, DataTypes) => {
-  var bcrypt = require("bcryptjs");
-
   const User = sequelize.define("users", {
     id: {
       type: DataTypes.BIGINT,
@@ -45,17 +43,6 @@ module.exports = (sequelize, DataTypes) => {
       field: "status",
     },
   });
-  // User.sync().then(() => {
-  //   User.create({
-  //     id: 12345678911,
-  //     username: "admin",
-  //     fullName: "Hà Minh Long",
-  //     password: bcrypt.hashSync("admin", 8),
-  //     email: "haminhlong3@gmail.com ",
-  //     mobile: "0963339657",
-  //     userGroupId: 12345678910,
-  //     status: 1,
-  //   });
-  // });
+  User.sync().then(async () => {});
   return User;
 };

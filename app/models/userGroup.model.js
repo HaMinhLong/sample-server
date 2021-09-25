@@ -23,14 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       field: "status",
     },
   });
-  // UserGroup.sync().then(() => {
-  //   UserGroup.create({
-  //     id: 12345678910,
-  //     userGroupName: "Quản trị hệ thống",
-  //     userGroupDescriptions: "",
-  //     status: 1,
-  //   });
-  // });
+  UserGroup.sync().then(async () => {});
 
   return UserGroup;
 };
