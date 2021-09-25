@@ -421,8 +421,15 @@ const forgetPassword = async (req, res) => {
     },
   });
   const config = await Config.findAll({});
-  const mailFrom = config[0].email;
-  const password = config[0].password;
+  const mailFrom =
+    config && config[0] && config[0].email
+      ? config[0].email
+      : "a34526@thanglong.edu.vn";
+  const password =
+    config && config[0] && config[0].password
+      ? config[0].password
+      : "Na+89-K-2";
+
   if (!user) {
     res.status(200).json({
       status: false,
