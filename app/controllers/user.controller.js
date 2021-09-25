@@ -137,8 +137,14 @@ const create = async (req, res) => {
     status,
   } = req.body;
   const config = await Config.findAll({});
-  const mailFrom = config[0].email;
-  const passwordEmail = config[0].password;
+  const mailFrom =
+    config && config[0] && config[0].email
+      ? config[0].email
+      : "a34526@thanglong.edu.vn";
+  const passwordEmail =
+    config && config[0] && config[0].password
+      ? config[0].password
+      : "Na+89-K-2";
 
   User.create({
     id:

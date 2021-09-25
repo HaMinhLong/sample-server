@@ -1,0 +1,154 @@
+{
+  "tao nhom tai khoan": {
+    "id": 12345678910,
+    "userGroupName": "Quản trị hệ thống",
+    "userGroupDescriptions": "",
+    "status": 1
+  },
+  "tao tai khoan": {
+    "id": 12345678911,
+    "username": "admin",
+    "fullName": "Hà Minh Long",
+    "password": "admin",
+    "email": "haminhlong3@gmail.com ",
+    "mobile": "0963339657",
+    "userGroupId": 12345678910,
+    "status": 1
+  },
+  "tao menu": [
+    {
+      "id": 12345678910,
+      "menuName": "Hệ thống",
+      "orderBy": 1,
+      "url": "/",
+      "icon": "",
+      "parentId": null,
+      "status": 1
+    },
+    {
+      "id": 12345678921,
+      "menuName": "Cấu hình hệ thống",
+      "orderBy": 1,
+      "url": "/config",
+      "icon": "",
+      "parentId": 12345678910,
+      "status": 1
+    },
+    {
+      "id": 12345678911,
+      "menuName": "Thanh công cụ",
+      "orderBy": 2,
+      "url": "/menu",
+      "icon": "",
+      "parentId": 12345678910,
+      "status": 1
+    },
+    {
+      "id": 12345678912,
+      "menuName": "Tài khoản - Phân quyền",
+      "orderBy": 2,
+      "url": "/",
+      "icon": "",
+      "parentId": null,
+      "status": 1
+    },
+    {
+      "id": 12345678913,
+      "menuName": "Nhóm tài khoản",
+      "orderBy": 1,
+      "url": "/user-group",
+      "icon": "",
+      "parentId": 12345678912,
+      "status": 1
+    },
+    {
+      "id": 12345678920,
+      "menuName": "Tài khoản",
+      "orderBy": 2,
+      "url": "/user",
+      "icon": "",
+      "parentId": 12345678912,
+      "status": 1
+    }
+  ],
+  "tao userGroupRole (bulk Create)": [
+    {
+      "id": 12345678916,
+      "menuName": "Hệ thống",
+      "menuParentId": null,
+      "userGroupId": 12345678910,
+      "menuId": 12345678910,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    },
+    {
+      "id": 12345678925,
+      "menuName": "Cấu hình hệ thống",
+      "menuParentId": 12345678910,
+      "userGroupId": 12345678910,
+      "menuId": 12345678921,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    },
+    {
+      "id": 12345678917,
+      "menuName": "Thanh công cụ",
+      "menuParentId": 12345678910,
+      "userGroupId": 12345678910,
+      "menuId": 12345678911,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    },
+    {
+      "id": 12345678918,
+      "menuName": "Tài khoản - Phân quyền",
+      "menuParentId": null,
+      "userGroupId": 12345678910,
+      "menuId": 12345678912,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    },
+    {
+      "id": 12345678919,
+      "menuName": "Nhóm tài khoản",
+      "menuParentId": 12345678912,
+      "userGroupId": 12345678910,
+      "menuId": 12345678913,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    },
+    {
+      "id": 12345678919,
+      "menuName": "Tài khoản",
+      "menuParentId": 12345678912,
+      "userGroupId": 12345678910,
+      "menuId": 12345678920,
+      "isView": true,
+      "isAdd": true,
+      "isUpdate": true,
+      "isDelete": true,
+      "isBlock": true,
+      "isApprove": true
+    }
+  ]
+}
