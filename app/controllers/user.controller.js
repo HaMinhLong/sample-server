@@ -325,7 +325,7 @@ const currentUser = (req, res) => {
         list: user,
         pagination: [],
       },
-      status: true,
+      success: true,
       error: "",
       message: "",
     });
@@ -348,14 +348,14 @@ const changePasswordLogin = (req, res) => {
           list: user,
           pagination: [],
         },
-        status: true,
+        success: true,
         error: "",
         message: "Đổi mật khẩu thành công!",
       });
     })
     .catch((err) => {
       res.status(200).json({
-        status: false,
+        success: false,
         error: err.message,
         message: "Xảy ra lỗi khi đổi mật khẩu!",
       });
@@ -370,7 +370,7 @@ const changePasswordNotLogin = async (req, res) => {
   });
   if (!user) {
     res.status(200).json({
-      status: false,
+      success: false,
       error: "Tài khoản không tồn tại!",
       message: "Tài khoản không tồn tại!",
     });
@@ -378,7 +378,7 @@ const changePasswordNotLogin = async (req, res) => {
 
   var passwordIsValid = bcrypt.compareSync(oldPassword, user.password);
   if (!passwordIsValid) {
-    res.status(401).json({
+    res.status(200).json({
       success: false,
       error: "Vui lòng nhập đúng mật khẩu!",
       message: "Vui lòng nhập đúng mật khẩu!",
@@ -432,7 +432,7 @@ const forgetPassword = async (req, res) => {
 
   if (!user) {
     res.status(200).json({
-      status: false,
+      success: false,
       error: "Vui lòng nhập đúng email tài khoản của bạn!",
       message: "Vui lòng nhập đúng email tài khoản của bạn!",
     });
