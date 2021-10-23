@@ -7,12 +7,13 @@ const app = express();
 var corsOptions = {
   origin: "http://localhost:8080",
 };
+global.__basedir = __dirname;
 
 app.use(cors());
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
-  // res.setHeader("Access-Control-Allow-Origin", "exp://127.0.0.1:19000");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
 
   // Request methods you wish to allow
   res.setHeader(

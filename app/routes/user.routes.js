@@ -1,4 +1,4 @@
-const { authJwt, verifySignUp } = require("../middleware");
+const { authJwt, verifySignUp, upload } = require("../middleware");
 const controller = require("../controllers/user.controller");
 
 module.exports = function (app) {
@@ -9,6 +9,7 @@ module.exports = function (app) {
     [verifySignUp.checkDuplicateUsernameOrEmail],
     controller.create
   );
+  app.post("/user/xlsx", upload.single("file"), controller.createByXLSX);
   app.put("/user/:id", controller.updateRecord);
   app.put("/user/updateStatus/:id", controller.updateStatus);
   app.delete("/user/:id", controller.deleteRecord);

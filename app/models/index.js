@@ -184,7 +184,7 @@ const initialData = () => {
   ]);
 };
 
-initialData();
+// initialData();
 
 //
 db.userGroup.hasMany(db.user);

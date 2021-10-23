@@ -203,17 +203,9 @@ const create = async (req, res) => {
       status,
     })
       .then(async (menu) => {
-        res.status(200).json({
-          results: {
-            list: menu,
-            pagination: [],
-          },
-          success: true,
-          error: "",
-          message: "Tạo mới thanh công cụ thành công!",
-        });
+        let menuBulkCreate = [];
         for (let index = 0; index < userGroup.length; index++) {
-          UserGroupRole.create({
+          menuBulkCreate.push({
             id:
               Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
               100000000000,
@@ -229,6 +221,16 @@ const create = async (req, res) => {
             menuParentId: parentId || null,
           });
         }
+        UserGroupRole.bulkCreate(menuBulkCreate);
+        res.status(200).json({
+          results: {
+            list: menu,
+            pagination: [],
+          },
+          success: true,
+          error: "",
+          message: "Tạo mới thanh công cụ thành công!",
+        });
       })
       .catch((err) => {
         res.status(200).json({

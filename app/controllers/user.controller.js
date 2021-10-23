@@ -6,7 +6,7 @@ const moment = require("moment");
 var bcrypt = require("bcryptjs");
 var nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
-
+const readXlsxFile = require("read-excel-file/node");
 const Op = db.Sequelize.Op;
 
 const getList = async (req, res) => {
@@ -203,6 +203,106 @@ const create = async (req, res) => {
         message: "Xảy ra lỗi khi tạo mới tài khoản!",
       });
     });
+};
+const createByXLSX = async (req, res) => {
+  try {
+    if (req.file == undefined) {
+      return res.status(200).json({
+        success: false,
+        error: "Vui lòng chọn file cần upload!",
+        message: "Vui lòng chọn file cần upload!",
+      });
+    }
+
+    let path = __basedir + "/resources/uploads/" + req.file.filename;
+
+    readXlsxFile(path).then(async (rows) => {
+      // skip header
+      rows.shift();
+      const config = await Config.findAll({});
+      const mailFrom =
+        config && config[0] && config[0].email
+          ? config[0].email
+          : "a34526@thanglong.edu.vn";
+      const passwordEmail =
+        config && config[0] && config[0].password
+          ? config[0].password
+          : "Na+89-K-2";
+
+      rows.forEach(async (row) => {
+        let user = {
+          id:
+            Math.floor(Math.random() * (100000000000 - 1000000000 + 1)) +
+            100000000000,
+          username: row[0],
+          password: bcrypt.hashSync(row[1], 8),
+          fullName: row[2],
+          email: row[3],
+          mobile: row[4],
+          userGroupId: 114427096293,
+          status: -2,
+        };
+        const usernameExits = await User.findOne({
+          where: {
+            username: row[0],
+          },
+        });
+        const emailExits = await User.findOne({
+          where: {
+            email: row[3],
+          },
+        });
+        if (!usernameExits && !emailExits) {
+          User.create(user)
+            .then((user) => {
+              var transporter = nodemailer.createTransport(
+                smtpTransport({
+                  service: "gmail",
+                  auth: {
+                    user: mailFrom,
+                    pass: passwordEmail,
+                  },
+                })
+              );
+              var mailOptions = {
+                from: mailFrom,
+                to: email,
+                subject: "Thông tin đăng nhập",
+                text: `Tên đăng nhập: ${row[0]}, Mật khẩu: ${row[1]}`,
+              };
+              transporter.sendMail(mailOptions, (error, info) => {});
+            })
+            .catch((err) => {
+              console.log("error", err);
+            });
+        } else {
+          console.log("Tên tài khoản hoặc email đã được sử dụng!");
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        error: "Tải tệp lên thành công!",
+        message: "Tải tệp lên thành công!",
+      });
+      // Tutorial.bulkCreate(tutorials)
+      //   .then(() => {
+      //     res.status(200).send({
+      //       message: "Uploaded the file successfully: " + req.file.originalname,
+      //     });
+      //   })
+      //   .catch((error) => {
+      //     res.status(500).send({
+      //       message: "Fail to import data into database!",
+      //       error: error.message,
+      //     });
+      //   });
+    });
+  } catch (error) {
+    res.status(200).send({
+      message: "Could not upload the file: " + req.file.originalname,
+    });
+  }
 };
 const updateRecord = async (req, res) => {
   const { id } = req.params;
@@ -485,6 +585,7 @@ module.exports = {
   getList,
   getOne,
   create,
+  createByXLSX,
   updateRecord,
   updateStatus,
   deleteRecord,
